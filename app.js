@@ -20,6 +20,36 @@ Object.entries(PERK_TIERS).forEach(([category, tiers]) => {
   });
 });
 
+function ensureLoadoutUi() {
+  const topControls = document.querySelector(".top-controls");
+  const resetButton = document.getElementById("resetButton");
+  if (topControls && !document.getElementById("exportLoadoutButton")) {
+    resetButton?.insertAdjacentHTML("beforebegin", '<button id="exportLoadoutButton" class="quiet-button" type="button">Export</button>');
+  }
+  if (topControls && !document.getElementById("importLoadoutButton")) {
+    resetButton?.insertAdjacentHTML("beforebegin", '<button id="importLoadoutButton" class="quiet-button" type="button">Import</button>');
+  }
+  if (!document.getElementById("loadoutDialog")) {
+    document.body.insertAdjacentHTML("beforeend", `
+      <dialog id="loadoutDialog" class="loadout-dialog">
+        <div class="dialog-head">
+          <h2 id="loadoutDialogTitle">Loadout</h2>
+          <button id="closeLoadoutDialog" class="dialog-close" type="button">Close</button>
+        </div>
+        <textarea id="loadoutText" class="loadout-text" spellcheck="false" placeholder="Paste loadout code or JSON"></textarea>
+        <div id="loadoutMessage" class="loadout-message" aria-live="polite"></div>
+        <div class="dialog-actions">
+          <button id="copyLoadoutButton" class="quiet-button" type="button">Copy</button>
+          <button id="downloadLoadoutButton" class="quiet-button" type="button">Download</button>
+          <button id="applyLoadoutButton" class="primary-button" type="button">Import</button>
+        </div>
+      </dialog>
+    `);
+  }
+}
+
+ensureLoadoutUi();
+
 const state = {
   activeCategory: CATEGORY_ORDER[0],
   levels: {},
@@ -626,8 +656,22 @@ function renderRules() {
 
 function showImage(src) {
   els.dialogImage.src = src;
-  if (typeof els.imageDialog.showModal === "function") {
-    els.imageDialog.showModal();
+  openDialog(els.imageDialog);
+}
+
+function openDialog(dialog) {
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+  } else {
+    dialog.setAttribute("open", "");
+  }
+}
+
+function closeDialog(dialog) {
+  if (typeof dialog.close === "function") {
+    dialog.close();
+  } else {
+    dialog.removeAttribute("open");
   }
 }
 
@@ -712,9 +756,7 @@ function setLoadoutMode(mode) {
 function openLoadoutDialog(mode) {
   setLoadoutMode(mode);
   els.loadoutText.value = mode === "export" ? encodeLoadout(currentLoadoutPayload()) : "";
-  if (typeof els.loadoutDialog.showModal === "function") {
-    els.loadoutDialog.showModal();
-  }
+  openDialog(els.loadoutDialog);
   els.loadoutText.focus();
   els.loadoutText.select();
 }
@@ -726,6 +768,7 @@ async function copyLoadout() {
     return;
   }
   try {
+    if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable.");
     await navigator.clipboard.writeText(text);
     setLoadoutMessage("Copied.");
   } catch {
@@ -740,12 +783,13 @@ function downloadLoadout() {
   const payload = currentLoadoutPayload();
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+  link.href = url;
   link.download = `perk-loadout-${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(link.href);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
   setLoadoutMessage("Downloaded.");
 }
 
@@ -757,7 +801,7 @@ function applyLoadout() {
     state.activeCategory = EQUIPPED_VIEW;
     saveState();
     render();
-    els.loadoutDialog.close();
+    closeDialog(els.loadoutDialog);
   } catch (error) {
     setLoadoutMessage(error.message || "Import failed.", true);
   }
@@ -825,8 +869,8 @@ els.importLoadoutButton.addEventListener("click", () => openLoadoutDialog("impor
 els.copyLoadoutButton.addEventListener("click", copyLoadout);
 els.downloadLoadoutButton.addEventListener("click", downloadLoadout);
 els.applyLoadoutButton.addEventListener("click", applyLoadout);
-els.closeImageDialog.addEventListener("click", () => els.imageDialog.close());
-els.closeLoadoutDialog.addEventListener("click", () => els.loadoutDialog.close());
+els.closeImageDialog.addEventListener("click", () => closeDialog(els.imageDialog));
+els.closeLoadoutDialog.addEventListener("click", () => closeDialog(els.loadoutDialog));
 
 loadState();
 render();

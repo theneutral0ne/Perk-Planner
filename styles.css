@@ -520,10 +520,22 @@ button:disabled {
 
 dialog {
   width: min(96vw, 1220px);
+  max-height: 92vh;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 10px;
   background: #080806;
+  overflow: auto;
+}
+
+dialog:not([open]) {
+  display: none;
+}
+
+dialog[open] {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
 }
 
 dialog::backdrop {
