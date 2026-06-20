@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Perk Planner</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Perk sandbox</p>
+          <h1>Perk Planner</h1>
+        </div>
+        <div class="top-controls">
+          <label>
+            Perk points
+            <input id="pointLimitInput" type="number" min="0" placeholder="Unlimited">
+          </label>
+          <button id="resetButton" class="quiet-button" type="button">Reset</button>
+        </div>
+      </header>
+
+      <main class="planner-layout">
+        <aside class="left-panel">
+          <nav id="categoryTabs" class="category-tabs" aria-label="Perk categories"></nav>
+          <div class="board-frame">
+            <img id="boardImage" alt="Selected perk board">
+          </div>
+          <label class="search-box">
+            Search
+            <input id="searchInput" type="search" placeholder="Perk or stat">
+          </label>
+        </aside>
+
+        <section class="perk-section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow" id="categoryEyebrow">Category</p>
+              <h2 id="categoryTitle">Perks</h2>
+            </div>
+            <div class="small-note" id="visibleCount"></div>
+          </div>
+          <div id="perkGrid" class="perk-grid"></div>
+        </section>
+
+        <aside class="right-panel">
+          <section class="summary-block">
+            <h2>Perk Points</h2>
+            <div id="categoryBreakdown" class="category-breakdown"></div>
+          </section>
+
+          <section class="summary-block">
+            <div class="summary-head">
+              <h2>Stats</h2>
+              <label class="inline-toggle">
+                <input id="conditionalToggle" type="checkbox" checked>
+                Include conditional
+              </label>
+            </div>
+            <div id="statSummary" class="stat-summary"></div>
+          </section>
+
+          <section class="summary-block">
+            <h2>Rules</h2>
+            <div id="ruleSummary" class="rule-summary"></div>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <dialog id="imageDialog">
+      <button id="closeImageDialog" class="dialog-close" type="button">Close</button>
+      <img id="dialogImage" alt="Perk card">
+    </dialog>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
